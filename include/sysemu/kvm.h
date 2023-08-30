@@ -186,6 +186,7 @@ extern bool kvm_msi_use_devid;
 
 struct kvm_run;
 struct kvm_lapic_state;
+struct kvm_lapic_state_w_extapic;
 struct kvm_irq_routing_entry;
 
 typedef struct KVMCapabilityInfo {
@@ -402,7 +403,8 @@ void kvm_irqchip_add_change_notifier(Notifier *n);
 void kvm_irqchip_remove_change_notifier(Notifier *n);
 void kvm_irqchip_change_notify(void);
 
-void kvm_get_apic_state(DeviceState *d, struct kvm_lapic_state *kapic);
+void kvm_get_apic_state(DeviceState *d, struct kvm_lapic_state_w_extapic *kapic);
+uint64_t kvm_get_apic_len(DeviceState *dev);
 
 struct kvm_guest_debug;
 struct kvm_debug_exit_arch;
