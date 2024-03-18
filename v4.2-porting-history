@@ -1,0 +1,44 @@
+
+3/18 - Below list of patches backported form upstream tip to v4.2
+except the few patches that needed infra porting marked with *
+
+So far ported patches are compiled tested.
+
+TODO:
+- Port below patches to support x2apic interrupt remapping for amd_iommu
+- Port Genoa patform patches
+- test with upstream kernel for amd_iommu with more than 2 nvme devices
+
+-----------------
+
+544f07f639 hw/i386/amd_iommu: Do not use SysBus API to map local MMIO region
+
+0114c45130 amd_iommu: Fix APIC address check
+bad5cfcd60 i386: spelling fixes //* Patching issue... skip
+5ec7755eb7 hw/i386/amd_iommu: Factor amdvi_pci_realize out of amdvi_sysbus_realize //* OBJECT_DECLARE_SIMPLE_TYPE needed.. patcing issue .. skip
+7f5a459dc8 hw/i386/amd_iommu: Set PCI static/const fields via PCIDeviceClass
+ae097d8fbd hw/i386/amd_iommu: Move capab_offset from AMDVIState to AMDVIPCIState
+531f50ab05 hw/i386/amd_iommu: Remove intermediate AMDVIState::devid field
+6291a28645 hw/i386/amd_iommu: Explicit use of AMDVI_BASE_ADDR in amdvi_init
+eaaaf8abdc KVM: remove support for kernel-irqchip=off
+18aa91cddd hw/i386/amd_iommu: Fix IOMMU event log encoding errors
+48fb0a826e Merge tag 'for-upstream' of https://gitlab.com/bonzini/qemu into staging
+
+####
+17e6ffa6a5 hw/i386/amd_iommu: Fix maybe-uninitialized error with GCC 12
+b21e238037 Use g_new() & friends where that makes obvious sense
+ba06fe8add dma: Let dma_memory_read/write() take MemTxAttrs argument --> * dma_memory_write() API change? ..skip
+867e9c9f4c hw/i386/pc: Remove x86_iommu_get_type() // * build issue .. skip
+64bc656dec hw/i386/amd_iommu: Add description/category to TYPE_AMD_IOMMU_PCI
+8f6b7309c4 hw/i386/amd_iommu: Rename SysBus specific functions as amdvi_sysbus_X()
+64cba40c44 hw/i386/amd_iommu: Rename amdviPCI TypeInfo
+e526ab61e9 amd_iommu: fix wrong MMIO operations
+5d31e1e59a amd_iommu: Fix pte_override_page_mask()
+30c60f77a8 x86-iommu: Rename QOM type macros --> * common code change
+e91830b121 amd_iommu: Use TYPE_AMD_IOMMU_PCI constant
+475fc97d09 amd_iommu: Fix amdvi_realize() error API violation --> * patching issue .. skip
+99ba777e53 qdev: Convert uses of qdev_set_parent_bus() with Coccinelle --> * common code change .. skip
+2356ff8500 hw/i386/amd_iommu: Fix the reserved bits definition of IOMMU commands
+32a2d6b1f6 hw/i386/amd_iommu.c: Fix corruption of log events passed to guest
+c9b13a51d5 hw/i386/amd_iommu: rename Error ** parameter to more common errp
+
