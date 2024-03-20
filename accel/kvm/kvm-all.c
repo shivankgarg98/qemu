@@ -2966,9 +2966,13 @@ int kvm_convert_memory(hwaddr start, hwaddr size, bool to_private)
              */
             goto out_unref;
         }
-        ret = ram_block_discard_range(rb, offset, size);
+        ret = ram_block_discard_is_disabled()
+              ? ram_block_discard_range(rb, offset, size)
+              : 0;
     } else {
-        ret = ram_block_discard_guest_memfd_range(rb, offset, size);
+        ret = ram_block_discard_is_disabled()
+              ? ram_block_discard_guest_memfd_range(rb, offset, size)
+              : 0;
     }
 
 out_unref:
