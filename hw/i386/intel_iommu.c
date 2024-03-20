@@ -64,14 +64,14 @@
 
 static void vtd_address_space_refresh_all(IntelIOMMUState *s);
 static void vtd_address_space_unmap(VTDAddressSpace *as, IOMMUNotifier *n);
-
+#if 0
 static void vtd_panic_require_caching_mode(void)
 {
     error_report("We need to set caching-mode=on for intel-iommu to enable "
                  "device assignment with IOMMU protection.");
     exit(1);
 }
-
+#endif
 static void vtd_define_quad(IntelIOMMUState *s, hwaddr addr, uint64_t val,
                             uint64_t wmask, uint64_t w1cmask)
 {
@@ -3715,8 +3715,8 @@ static bool vtd_decide_config(IntelIOMMUState *s, Error **errp)
 
 static int vtd_machine_done_notify_one(Object *child, void *unused)
 {
+#if 0
     IntelIOMMUState *iommu = INTEL_IOMMU_DEVICE(x86_iommu_get_default());
-
     /*
      * We hard-coded here because vfio-pci is the only special case
      * here.  Let's be more elegant in the future when we can, but so
@@ -3725,6 +3725,7 @@ static int vtd_machine_done_notify_one(Object *child, void *unused)
     if (object_dynamic_cast(child, "vfio-pci") && !iommu->caching_mode) {
         vtd_panic_require_caching_mode();
     }
+#endif
 
     return 0;
 }
