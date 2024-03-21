@@ -371,6 +371,19 @@ void helper_wrmsr(CPUX86State *env)
         env->msr_bndcfgs = val;
         cpu_sync_bndcs_hflags(env);
         break;
+    case MSR_APIC_START ... MSR_APIC_END: {
+        int ret;
+        int index = (uint32_t)env->regs[R_ECX] - MSR_APIC_START;
+
+        qemu_mutex_lock_iothread();
+        ret = apic_msr_write(index, val);
+        qemu_mutex_unlock_iothread();
+        if (ret < 0) {
+            goto error;
+        }
+
+        break;
+    }
     default:
         if ((uint32_t)env->regs[R_ECX] >= MSR_MC0_CTL
             && (uint32_t)env->regs[R_ECX] < MSR_MC0_CTL +
@@ -385,6 +398,11 @@ void helper_wrmsr(CPUX86State *env)
         /* XXX: exception? */
         break;
     }
+error:
+    // FIXME: backporint infra task i.e.. Raise exception
+    // raise_exception_err_ra(env, EXCP0D_GPF, 0, GETPC());
+
+    return;
 }
 
 void helper_rdmsr(CPUX86State *env)
@@ -522,6 +540,19 @@ void helper_rdmsr(CPUX86State *env)
     case MSR_IA32_BNDCFGS:
         val = env->msr_bndcfgs;
         break;
+    case MSR_APIC_START ... MSR_APIC_END: {
+        int ret;
+        int index = (uint32_t)env->regs[R_ECX] - MSR_APIC_START;
+
+	qemu_mutex_lock_iothread();
+        ret = apic_msr_read(index, &val);
+	qemu_mutex_unlock_iothread();
+        if (ret < 0) {
+            raise_exception_err_ra(env, EXCP0D_GPF, 0, GETPC());
+        }
+
+        break;
+    }
     default:
         if ((uint32_t)env->regs[R_ECX] >= MSR_MC0_CTL
             && (uint32_t)env->regs[R_ECX] < MSR_MC0_CTL +
