@@ -64,6 +64,7 @@ void kvm_put_apicbase(X86CPU *cpu, uint64_t value);
 
 bool kvm_enable_x2apic(void);
 bool kvm_has_x2apic_api(void);
+void kvm_set_max_apic_id(uint32_t max_apic_id);
 
 bool kvm_hv_vpindex_settable(void);
 #endif
