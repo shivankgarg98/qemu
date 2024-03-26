@@ -1,3 +1,27 @@
+3/16 - Backported below patches includes 1024 vCPU support and x2apic amd_iommu emulation support
+FIXME: 1) >255 vcpu crashing qemu, Offending commit is "apic: add support for x2APIC mode"
+2) "xtsup=on" is not booting the guest, Need to fix the acpi emulation code for x2apic amd_iommu emulation
+
+Patch porting list for tencent-v4.2.0-v2 branch is:
+-------
+5c567177bf127d110c4c2108c804cc427e6d80b0 (HEAD -> tencent-test, tencent-v4.2.0) amd_iommu: report x2APIC support to the operating system
+0ce47f0b2a3a14671a2e93c452353e4a08280108 intel_iommu: allow Extended Interrupt Mode when using  userspace APIC
+80a12962e059ec9eef38231604cfa9eb598390bf apic, i386/tcg: add x2apic transitions
+8e7aae2d595751d95534cbaca1de282b7fe8a21c apic: add support for x2APIC mode
+4dacf28376bc87fe070383f56b599a9cda564f7a i386/tcg: implement x2APIC registers MSR access
+da9e9c17c0fe272be3f48f77a0d59d045de7830d Revert "target/i386: Disable Caching mode on for AMD IOMMU"
+ba3e1b1909ad48a599bcd98443c206438d8998be target/i386: allow versioned CPUs to specify new cache_info
+d447cc68ca29e7064812c82df077d60f755ff010 target/i386: Disable Caching mode on for AMD IOMMU
+b2a1820c62aef1575dbe27116972b3d003084b73 target/i386: Observe XSAVE state area offsets
+98e247dd60715777f8872f93c483c3a8312809b2 target/i386: Make x86_ext_save_areas visible outside cpu.c
+e9529d53967a289a439ba4bbda0e43511739ac80 target/i386: Pass buffer and length to XSAVE helper
+92beba98b4da5c524e59ca2f67e4762c7a163e33 target/i386: Clarify the padding requirements of X86XSaveArea
+783bbe781095ad1abacd17df392e0c1f1b331bb8 target/i386: Consolidate the X86XSaveArea offset checks
+8e3457d9d29ad2d9084d28cbccb9bd492f56039d target/i386: Declare constants for XSAVE offsets
+30b5c393d9a2eb99ee52dd9f678000ecdf47b889 hw/pci: modify pci_setup_iommu() to set PCIIOMMUOps MIME-Version: 1.0 Content-Type: text/plain; charset=UTF-8 Content-Transfer-Encoding: 8bit
+3013b8689dca8c9b21b0ab327c09171331cfd2ca pc: q35: Bump max_cpus to 1024 MIME-Version: 1.0 Content-Type: text/plain; charset=UTF-8 Content-Transfer-Encoding: 8bit
+
+-------
 
 3/18 - Below list of patches backported form upstream tip to v4.2
 except the few patches that needed infra porting marked with *
