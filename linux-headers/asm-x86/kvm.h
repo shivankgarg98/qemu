@@ -692,7 +692,6 @@ enum sev_cmd_id {
 	KVM_SEV_INIT2,
 
 	/* SNP-specific commands */
-	KVM_SEV_SNP_INIT,
 	KVM_SEV_SNP_LAUNCH_START,
 	KVM_SEV_SNP_LAUNCH_UPDATE,
 	KVM_SEV_SNP_LAUNCH_FINISH,
@@ -820,11 +819,6 @@ struct kvm_sev_receive_update_data {
 	__u64 trans_uaddr;
 	__u32 trans_len;
 	__u32 pad2;
-};
-
-/* TODO: use a common struct via KVM_SEV_INIT2 */
-struct kvm_snp_init {
-	__u64 flags;
 };
 
 struct kvm_sev_snp_launch_start {
