@@ -455,9 +455,13 @@ struct kvm_sync_regs {
 
 #define KVM_STATE_VMX_PREEMPTION_TIMER_DEADLINE	0x00000001
 
-/* attributes for system fd (group 0) */
-#define KVM_X86_XCOMP_GUEST_SUPP	0
-#define KVM_X86_SEV_VMSA_FEATURES	1
+/* vendor-independent attributes for system fd (group 0) */
+#define KVM_X86_GRP_SYSTEM		0
+#  define KVM_X86_XCOMP_GUEST_SUPP	0
+
+/* vendor-specific groups and attributes for system fd */
+#define KVM_X86_GRP_SEV			1
+#  define KVM_X86_SEV_VMSA_FEATURES	0
 
 struct kvm_vmx_nested_state_data {
 	__u8 vmcs12[KVM_STATE_NESTED_VMX_VMCS_SIZE];
@@ -692,7 +696,6 @@ enum sev_cmd_id {
 	KVM_SEV_INIT2,
 
 	/* SNP-specific commands */
-	KVM_SEV_SNP_INIT,
 	KVM_SEV_SNP_LAUNCH_START,
 	KVM_SEV_SNP_LAUNCH_UPDATE,
 	KVM_SEV_SNP_LAUNCH_FINISH,
@@ -822,11 +825,6 @@ struct kvm_sev_receive_update_data {
 	__u32 pad2;
 };
 
-/* TODO: use a common struct via KVM_SEV_INIT2 */
-struct kvm_snp_init {
-	__u64 flags;
-};
-
 struct kvm_sev_snp_launch_start {
 	__u64 policy;
 	__u8 gosvw[16];
@@ -855,6 +853,7 @@ struct kvm_sev_snp_launch_finish {
 	__u64 id_auth_uaddr;
 	__u8 id_block_en;
 	__u8 auth_key_en;
+	__u8 vcek_disabled;
 	__u8 host_data[KVM_SEV_SNP_FINISH_DATA_SIZE];
 	__u8 pad[6];
 };
