@@ -81,6 +81,7 @@
 #include "hw/core/cpu.h"
 #include "hw/usb.h"
 #include "hw/i386/intel_iommu.h"
+#include "hw/i386/amd_iommu.h"
 #include "hw/net/ne2000-isa.h"
 #include "standard-headers/asm-x86/bootparam.h"
 #include "hw/virtio/virtio-pmem-pci.h"
@@ -1061,15 +1062,30 @@ void pc_machine_done(Notifier *notifier, void *data)
     }
 
     if (x86ms->apic_id_limit > 255 && !xen_enabled()) {
-        IntelIOMMUState *iommu = INTEL_IOMMU_DEVICE(x86_iommu_get_default());
+        X86IOMMUState *s = x86_iommu_get_default();
 
-        if (!iommu || !x86_iommu_ir_supported(X86_IOMMU_DEVICE(iommu)) ||
-            iommu->intr_eim != ON_OFF_AUTO_ON) {
-            error_report("current -smp configuration requires "
-                         "Extended Interrupt Mode enabled. "
-                         "You can add an IOMMU using: "
-                         "-device intel-iommu,intremap=on,eim=on");
-            exit(EXIT_FAILURE);
+        if (!strcmp(object_get_typename(OBJECT(s)), "iommu-intel")) {
+            IntelIOMMUState *iommu = INTEL_IOMMU_DEVICE(s);
+
+            if (!iommu || !x86_iommu_ir_supported(X86_IOMMU_DEVICE(iommu)) ||
+                iommu->intr_eim != ON_OFF_AUTO_ON) {
+                error_report("current -smp configuration requires "
+                             "Extended Interrupt Mode enabled. "
+                             "You can add an IOMMU using: "
+                             "-device intel-iommu,intremap=on,eim=on");
+                exit(EXIT_FAILURE);
+            }
+        } else if (!strcmp(object_get_typename(OBJECT(s)), "amd-iommu")) {
+            AMDVIState *iommu = AMD_IOMMU_DEVICE(s);
+
+            if (!iommu || !x86_iommu_ir_supported(X86_IOMMU_DEVICE(iommu)) ||
+                iommu->xtsup != true) {
+                error_report("current -smp configuration requires "
+                             "XTSup Mode enabled. "
+                             "You can add an IOMMU using: "
+                             "-device amd-iommu,intremap=on,xtsup=on");
+                exit(EXIT_FAILURE);
+            }
         }
     }
 }
