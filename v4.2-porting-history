@@ -66,3 +66,30 @@ e91830b121 amd_iommu: Use TYPE_AMD_IOMMU_PCI constant
 32a2d6b1f6 hw/i386/amd_iommu.c: Fix corruption of log events passed to guest
 c9b13a51d5 hw/i386/amd_iommu: rename Error ** parameter to more common errp
 
+-------
+
+3/28 (Suravee Suthikulpanit)
+
+V3 STATUS:
+
+Tested w/ the host kernel:
+* http://sos-git.amd.com/gitweb/?p=iommu.git;a=shortlog;h=refs/heads/wip/v5.8-tencent_20240428_1
+
+Tested w/ the following test cases:
+
+* 512 vCPUs + Emulated amd-iommu,xtsup=on,intremap=on (w/ DMA remapping support for emulated devices)
+  - See script launch-qemu-amd.sh)
+
+* 512 vCPUs + Emulated amd-iommu,xtsup=on,intremap=on,pt=on (w/o DMA remapping) + NVME VFIO pass-through device 
+  - See script launch-qemu-amd-nvme.sh
+  - Guest Linux kernel booting w/ iommu=pt
+
+PATCHES:
+
+8322d8cc88 -- Wed Mar 27 13:34:12 2024 -0500 -- Suravee Suthikulpanit -- apic: Check APICCommonState.cpu before checking x2apic feature
+3f57d0ec9c -- Wed Mar 27 13:34:12 2024 -0500 -- Suravee Suthikulpanit -- hw/i386: Add Warning for enabling XTSup mode for AMD IOMMU
+eeff190768 -- Wed Mar 27 13:34:12 2024 -0500 -- Babu Moger -- target/i386: Remove core_id assert check in CPUID 0x8000001E
+894411c566 -- Wed Mar 27 13:34:12 2024 -0500 -- Suravee Suthikulpanit -- hw/i386/amd_iommu: Send notification when invaldate interrupt entry cache
+863906f648 -- Wed Mar 27 13:34:12 2024 -0500 -- Suravee Suthikulpanit -- hw/i386/amd_iommu: Use per-IOMMU IOMMU memory region for interrupt remapping
+b147583f4a -- Wed Mar 27 13:31:03 2024 -0500 -- Suravee Suthikulpanit -- hw/i386/amd_iommu: Introduce IOMMU memory region for pt mode
+89cf42e84b -- Wed Mar 27 12:05:09 2024 -0500 -- Suravee Suthikulpanit -- hw/i386/amd_iommu: Rename variable for MMIO Memory Region
