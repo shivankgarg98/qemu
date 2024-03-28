@@ -2360,6 +2360,22 @@ sev_snp_guest_set_auth_key_en(Object *obj, bool value, Error **errp)
     sev_snp_guest->kvm_finish_conf.auth_key_en = value;
 }
 
+static bool
+sev_snp_guest_get_vcek_disabled(Object *obj, Error **errp)
+{
+    SevSnpGuestState *sev_snp_guest = SEV_SNP_GUEST(obj);
+
+    return !!sev_snp_guest->kvm_finish_conf.vcek_disabled;
+}
+
+static void
+sev_snp_guest_set_vcek_disabled(Object *obj, bool value, Error **errp)
+{
+    SevSnpGuestState *sev_snp_guest = SEV_SNP_GUEST(obj);
+
+    sev_snp_guest->kvm_finish_conf.vcek_disabled = value;
+}
+
 static char *
 sev_snp_guest_get_host_data(Object *obj, Error **errp)
 {
@@ -2436,6 +2452,9 @@ sev_snp_guest_class_init(ObjectClass *oc, void *data)
     object_class_property_add_bool(oc, "auth-key-enabled",
                                    sev_snp_guest_get_auth_key_en,
                                    sev_snp_guest_set_auth_key_en);
+    object_class_property_add_bool(oc, "vcek-required",
+                                   sev_snp_guest_get_vcek_disabled,
+                                   sev_snp_guest_set_vcek_disabled);
     object_class_property_add_str(oc, "host-data",
                                   sev_snp_guest_get_host_data,
                                   sev_snp_guest_set_host_data);

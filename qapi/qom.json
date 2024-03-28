@@ -961,6 +961,12 @@
 # @auth-key-enabled: true if 'id-auth' blob contains the 'AUTHOR_KEY' field
 #                    defined SEV-SNP firmware ABI (default: false)
 #
+# @vcek-disabled: Guests are by default allowed to choose between VLEK
+#                 (Versioned Loaded Endorsement Key) or VCEK (Versioned
+#                 Chip Endorsement Key) when requesting attestation reports
+#                 from firmware. Set this to true to disable the use of
+#                 VCEK. (default: false) (since: 9.1)
+#
 # @host-data: 32-byte, base64-encoded, user-defined blob to provide to the
 #             guest, as documented for the 'HOST_DATA' parameter of the
 #             SNP_LAUNCH_FINISH command in the SEV-SNP firmware ABI
@@ -980,6 +986,7 @@
             '*id-block': 'str',
             '*id-auth': 'str',
             '*auth-key-enabled': 'bool',
+            '*vcek-disabled': 'bool',
             '*host-data': 'str',
             '*certs-path': 'str' } }
 
