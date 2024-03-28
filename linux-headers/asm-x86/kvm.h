@@ -849,6 +849,7 @@ struct kvm_sev_snp_launch_finish {
 	__u64 id_auth_uaddr;
 	__u8 id_block_en;
 	__u8 auth_key_en;
+	__u8 vlek_required;
 	__u8 host_data[KVM_SEV_SNP_FINISH_DATA_SIZE];
 	__u8 pad[6];
 };
