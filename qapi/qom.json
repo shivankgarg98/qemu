@@ -952,6 +952,11 @@
 # @auth-key-enabled: true if 'id-auth' blob contains the 'AUTHOR_KEY' field
 #                    defined SEV-SNP firmware ABI (default: false)
 #
+# @vlek-required: true if guest attestation reports are only to be signed
+#                 with a Versioned Loaded Endorsement Key versus allowing
+#                 the guest to choose between VLEK or VCEK (Versioned Chip
+#                 Endorsement Key).
+#
 # @host-data: 32-byte, base64-encoded, user-defined blob to provide to the
 #             guest, as documented for the 'HOST_DATA' parameter of the
 #             SNP_LAUNCH_FINISH command in the SEV-SNP firmware ABI
@@ -971,6 +976,7 @@
             '*id-block': 'str',
             '*id-auth': 'str',
             '*auth-key-enabled': 'bool',
+            '*vlek-required': 'bool',
             '*host-data': 'str',
             '*certs-path': 'str' } }
 
