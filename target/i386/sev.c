@@ -1129,7 +1129,10 @@ snp_metadata_desc_to_page_type(int desc_type)
     case SEV_DESC_TYPE_SNP_SECRETS: return KVM_SEV_SNP_PAGE_TYPE_SECRETS;
     case SEV_DESC_TYPE_CPUID: return KVM_SEV_SNP_PAGE_TYPE_CPUID;
     case SEV_DESC_TYPE_SNP_KERNEL_HASHES: return KVM_SEV_SNP_PAGE_TYPE_NORMAL;
-    default: return -1;
+    default:
+            error_report("%s: Unnown memory type '%d' treated as PAGE_TYPE_ZERO\n",
+			 __func__, desc_type);
+	 return KVM_SEV_SNP_PAGE_TYPE_ZERO;
     }
 }
 
@@ -1145,10 +1148,6 @@ snp_populate_metadata_pages(SevSnpGuestState *sev_snp, OvmfSevMetadata *metadata
         desc = &metadata->descs[i];
 
         type = snp_metadata_desc_to_page_type(desc->type);
-        if (type < 0) {
-            error_report("%s: Invalid memory type '%d'\n", __func__, desc->type);
-            exit(1);
-        }
 
         hva = gpa2hva(&mr, desc->base, desc->len, NULL);
         if (!hva) {
