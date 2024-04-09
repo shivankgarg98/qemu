@@ -528,6 +528,7 @@ static void pc_i440fx_9_0_machine_options(MachineClass *m)
     pc_i440fx_machine_options(m);
     m->alias = NULL;
     m->is_default = false;
+    compat_props_add(m->compat_props, pc_compat_9_0, pc_compat_9_0_len);
 }
 
 DEFINE_I440FX_MACHINE(v9_0, "pc-i440fx-9.0", NULL,

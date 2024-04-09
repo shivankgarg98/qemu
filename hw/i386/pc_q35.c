@@ -380,6 +380,7 @@ static void pc_q35_9_0_machine_options(MachineClass *m)
 {
     pc_q35_machine_options(m);
     m->alias = NULL;
+    compat_props_add(m->compat_props, pc_compat_9_0, pc_compat_9_0_len);
 }
 
 DEFINE_Q35_MACHINE(v9_0, "pc-q35-9.0", NULL,
