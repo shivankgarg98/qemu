@@ -696,7 +696,7 @@ enum sev_cmd_id {
 	KVM_SEV_INIT2,
 
 	/* SNP-specific commands */
-	KVM_SEV_SNP_LAUNCH_START,
+	KVM_SEV_SNP_LAUNCH_START = 100,
 	KVM_SEV_SNP_LAUNCH_UPDATE,
 	KVM_SEV_SNP_LAUNCH_FINISH,
 
@@ -855,7 +855,7 @@ struct kvm_sev_snp_launch_finish {
 	__u8 auth_key_en;
 	__u8 vcek_disabled;
 	__u8 host_data[KVM_SEV_SNP_FINISH_DATA_SIZE];
-	__u8 pad[6];
+	__u8 pad0[5];
 };
 
 #define KVM_X2APIC_API_USE_32BIT_IDS            (1ULL << 0)
