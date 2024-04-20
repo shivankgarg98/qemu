@@ -828,6 +828,9 @@ struct kvm_sev_receive_update_data {
 struct kvm_sev_snp_launch_start {
 	__u64 policy;
 	__u8 gosvw[16];
+	__u16 flags;
+	__u8 pad0[6];
+	__u64 pad1[4];
 };
 
 /* Kept in sync with firmware values for simplicity. */
@@ -840,8 +843,12 @@ struct kvm_sev_snp_launch_start {
 struct kvm_sev_snp_launch_update {
 	__u64 gfn_start;
 	__u64 uaddr;
-	__u32 len;
+	__u64 len;
 	__u8 type;
+	__u8 pad0;
+	__u16 flags;
+	__u32 pad1;
+	__u64 pad2[4];
 };
 
 #define KVM_SEV_SNP_ID_BLOCK_SIZE	96
@@ -855,7 +862,9 @@ struct kvm_sev_snp_launch_finish {
 	__u8 auth_key_en;
 	__u8 vcek_disabled;
 	__u8 host_data[KVM_SEV_SNP_FINISH_DATA_SIZE];
-	__u8 pad0[5];
+	__u8 pad0[3];
+	__u16 flags;
+	__u64 pad1[4];
 };
 
 #define KVM_X2APIC_API_USE_32BIT_IDS            (1ULL << 0)
