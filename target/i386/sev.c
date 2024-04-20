@@ -829,9 +829,6 @@ sev_snp_launch_update(SevSnpGuestState *sev_snp_guest, SevLaunchUpdateData *data
     update.len = data->len;
     update.type = data->type;
 
-    trace_kvm_sev_snp_launch_update(data->hva, data->gpa, data->len,
-                                    snp_page_type_to_str(data->type));
-
     /*
      * KVM_SEV_SNP_LAUNCH_UPDATE requires that GPA ranges have the private
      * memory attribute set in advance.
@@ -842,20 +839,33 @@ sev_snp_launch_update(SevSnpGuestState *sev_snp_guest, SevLaunchUpdateData *data
         goto out;
     }
 
-    ret = sev_ioctl(SEV_COMMON(sev_snp_guest)->sev_fd,
-                    KVM_SEV_SNP_LAUNCH_UPDATE,
-                    &update, &fw_error);
-    if (ret) {
-        error_report("SNP_LAUNCH_UPDATE ret=%d fw_error=%d '%s'",
-                     ret, fw_error, fw_error_to_str(fw_error));
+    while (update.len || ret == -EAGAIN) {
+        trace_kvm_sev_snp_launch_update(update.uaddr, update.gfn_start << TARGET_PAGE_BITS,
+                                        update.len, snp_page_type_to_str(update.type));
 
-        if (data->type == KVM_SEV_SNP_PAGE_TYPE_CPUID) {
-            sev_snp_cpuid_report_mismatches(&snp_cpuid_info, data->hva);
-            error_report("SEV-SNP: failed update CPUID page");
+        ret = sev_ioctl(SEV_COMMON(sev_snp_guest)->sev_fd,
+                        KVM_SEV_SNP_LAUNCH_UPDATE,
+                        &update, &fw_error);
+        if (ret && ret != -EAGAIN) {
+            error_report("SNP_LAUNCH_UPDATE ret=%d fw_error=%d '%s'",
+                         ret, fw_error, fw_error_to_str(fw_error));
+
+            if (data->type == KVM_SEV_SNP_PAGE_TYPE_CPUID) {
+                sev_snp_cpuid_report_mismatches(&snp_cpuid_info, data->hva);
+                error_report("SEV-SNP: failed update CPUID page");
+            }
+            break;
         }
     }
 
 out:
+    if (!ret && update.gfn_start << TARGET_PAGE_BITS != data->gpa + data->len) {
+        error_report("SEV-SNP: expected update of GPA range %lx-%lx, got GPA range %lx-%llx",
+                     data->gpa, data->gpa + data->len, data->gpa,
+                     update.gfn_start << TARGET_PAGE_BITS);
+        ret = -EIO;
+    }
+
     return ret;
 }
 
