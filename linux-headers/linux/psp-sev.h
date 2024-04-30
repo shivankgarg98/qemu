@@ -31,8 +31,7 @@ enum {
 	SNP_PLATFORM_STATUS,
 	SNP_COMMIT,
 	SNP_SET_CONFIG,
-	SNP_SET_CONFIG_START,
-	SNP_SET_CONFIG_END,
+	SNP_VLEK_LOAD,
 
 	SEV_MAX,
 };
@@ -217,13 +216,29 @@ struct sev_user_data_snp_config {
 } __attribute__((packed));
 
 /**
- * struct sev_user_data_snp_config_transaction - metadata for config transactions
+ * struct sev_data_snp_vlek_load - SNP_VLEK_LOAD structure
  *
- * @id: the ID of the transaction started/ended by a call to SNP_SET_CONFIG_START
- *	or SNP_SET_CONFIG_END, respectively.
+ * @len: length of the command buffer read by the PSP
+ * @vlek_wrapped_version: version of wrapped VLEK hashstick (Must be 0h)
+ * @rsvd: reserved
+ * @vlek_wrapped_address: address of a wrapped VLEK hashstick
+ *                        (struct sev_user_data_snp_wrapped_vlek_hashstick)
  */
-struct sev_user_data_snp_config_transaction {
-	__u64 id;		/* Out */
+struct sev_user_data_snp_vlek_load {
+	__u32 len;				/* In */
+	__u8 vlek_wrapped_version;		/* In */
+	__u8 rsvd[3];				/* In */
+	__u64 vlek_wrapped_address;		/* In */
+} __attribute__((packed));
+
+/**
+ * struct sev_user_data_snp_vlek_wrapped_vlek_hashstick - Wrapped VLEK data
+ *
+ * @data: Opaque data provided by AMD KDS (as described in SEV-SNP Firmware ABI
+ *        1.54, SNP_VLEK_LOAD)
+ */
+struct sev_user_data_snp_wrapped_vlek_hashstick {
+	__u8 data[432];				/* In */
 } __attribute__((packed));
 
 /**
