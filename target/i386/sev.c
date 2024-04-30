@@ -1391,7 +1391,10 @@ static int sev_kvm_init(ConfidentialGuestSupport *cgs, Error **errp)
         goto err;
     }
 
+#define KVM_HC_MAP_GPA_RANGE 12
     if (sev_snp_enabled()) {
+        if (!kvm_enable_hypercall(BIT_ULL(KVM_HC_MAP_GPA_RANGE)))
+            goto err;
         ret = sev_snp_launch_start(SEV_SNP_GUEST(sev_common));
     } else {
         ret = sev_launch_start(SEV_GUEST(sev_common));
