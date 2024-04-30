@@ -157,7 +157,7 @@ for arch in $ARCHLIST; do
         cp_portable "$tmpdir/bootparam.h" \
                     "$output/include/standard-headers/asm-$arch"
         cp_portable "$tmpdir/include/asm/setup_data.h" \
-                    "$output/standard-headers/asm-x86"
+                    "$output/include/standard-headers/asm-$arch"
     fi
     if [ $arch = riscv ]; then
         cp "$tmpdir/include/asm/ptrace.h" "$output/linux-headers/asm-riscv/"
