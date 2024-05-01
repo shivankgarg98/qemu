@@ -890,13 +890,19 @@
 #     designated guest firmware page for measured boot with -kernel
 #     (default: false) (since 6.2)
 #
+# @ghcb-version: the maximum supported GHCB protocol version that will
+#                be advertised to guests. Defaults to version 1 for
+#                for guests created via legacy KVM_SEV_ES_INIT, version
+#                2 otherwise.
+#
 # Since: 2.12
 ##
 { 'struct': 'SevCommonProperties',
   'data': { '*sev-device': 'str',
             '*cbitpos': 'uint32',
             'reduced-phys-bits': 'uint32',
-            '*kernel-hashes': 'bool' } }
+            '*kernel-hashes': 'bool',
+            '*ghcb-version': 'uint16' } }
 
 ##
 # @SevGuestProperties:

@@ -83,6 +83,7 @@ struct SevCommonState {
     uint32_t cbitpos;
     uint32_t reduced_phys_bits;
     bool kernel_hashes;
+    uint16_t ghcb_version;
 
     /* runtime state */
     uint8_t api_major;
@@ -1380,7 +1381,10 @@ static int sev_kvm_init(ConfidentialGuestSupport *cgs, Error **errp)
 
         ret = sev_ioctl(sev_common->sev_fd, cmd, NULL, &fw_error);
     } else {
-        struct kvm_sev_init args = { 0 };
+        struct kvm_sev_init args = {
+            .flags = 0,
+            .ghcb_version = sev_common->ghcb_version
+        };
 
         ret = sev_ioctl(sev_common->sev_fd, KVM_SEV_INIT2, &args, &fw_error);
     }
@@ -1984,6 +1988,8 @@ sev_common_instance_init(Object *obj)
                                    OBJ_PROP_FLAG_READWRITE);
     object_property_add_uint32_ptr(obj, "reduced-phys-bits",
                                    &sev_common->reduced_phys_bits,
+                                   OBJ_PROP_FLAG_READWRITE);
+    object_property_add_uint16_ptr(obj, "ghcb-version", &sev_common->ghcb_version,
                                    OBJ_PROP_FLAG_READWRITE);
 }
 
