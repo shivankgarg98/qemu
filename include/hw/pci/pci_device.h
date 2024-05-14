@@ -354,4 +354,15 @@ extern const VMStateDescription vmstate_pci_device;
     .offset     = vmstate_offset_pointer(_state, _field, PCIDevice), \
 }
 
+#define INTERFACE_PCIE_TIO_DEVICE "pci-express-tio-device-if"
+typedef struct PCIETIOIfClass PCIETIOIfClass;
+
+DECLARE_CLASS_CHECKERS(PCIETIOIfClass, PCIE_TIO_DEVICE, INTERFACE_PCIE_TIO_DEVICE)
+
+struct PCIETIOIfClass {
+    InterfaceClass parent;
+
+    int (*tdi_bind)(PCIDevice *pdev, int32_t guest_rid);
+};
+
 #endif
