@@ -123,6 +123,7 @@ typedef struct VFIODevice {
     char *name;
     DeviceState *dev;
     int fd;
+    bool tsm_private_dma;
     int type;
     bool mdev;
     bool reset_works;

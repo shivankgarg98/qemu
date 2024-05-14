@@ -26,6 +26,7 @@
 #include "qemu/chardev_open.h"
 #include "pci.h"
 #include "exec/ram_addr.h"
+#include "sysemu/kvm.h"
 
 static int iommufd_cdev_map(const VFIOContainerBase *bcontainer, hwaddr iova,
                             ram_addr_t size, void *vaddr, bool readonly)
@@ -50,14 +51,32 @@ static int iommufd_cdev_unmap(const VFIOContainerBase *bcontainer,
                                      container->ioas_id, iova, size);
 }
 
-static bool iommufd_cdev_kvm_device_add(VFIODevice *vbasedev, Error **errp)
+static bool iommufd_cdev_kvm_device_add(VFIODevice *vbasedev,
+                                        IOMMUFDBackend *iommufd,
+                                        Error **errp)
 {
-    return !vfio_kvm_device_add_fd(vbasedev->fd, errp);
+    int ret = vfio_kvm_device_add_fd(vbasedev->fd, errp);
+
+    if (!ret && kvm_state && vbasedev->tee_io && iommufd->users == 1) {
+        ret = vfio_kvm_device_add_fd(iommufd->fd, errp);
+        if (ret) {
+            Error *err1 = NULL;
+
+            vfio_kvm_device_del_fd(vbasedev->fd, &err1);
+        }
+    }
+
+    return !ret;
 }
 
-static void iommufd_cdev_kvm_device_del(VFIODevice *vbasedev)
+static void iommufd_cdev_kvm_device_del(VFIODevice *vbasedev,
+                                        IOMMUFDBackend *iommufd)
 {
     Error *err = NULL;
+
+    if (kvm_state && vbasedev->tee_io && iommufd->users == 1) {
+        vfio_kvm_device_del_fd(iommufd->fd, &err);
+    }
 
     if (vfio_kvm_device_del_fd(vbasedev->fd, &err)) {
         error_report_err(err);
@@ -81,7 +100,7 @@ static bool iommufd_cdev_connect_and_bind(VFIODevice *vbasedev, Error **errp)
      * in KVM. Especially for some emulated devices, it requires
      * to have kvm information in the device open.
      */
-    if (!iommufd_cdev_kvm_device_add(vbasedev, errp)) {
+    if (!iommufd_cdev_kvm_device_add(vbasedev, iommufd, errp)) {
         goto err_kvm_device_add;
     }
 
@@ -96,9 +115,10 @@ static bool iommufd_cdev_connect_and_bind(VFIODevice *vbasedev, Error **errp)
     vbasedev->devid = bind.out_devid;
     trace_iommufd_cdev_connect_and_bind(bind.iommufd, vbasedev->name,
                                         vbasedev->fd, vbasedev->devid);
+
     return true;
 err_bind:
-    iommufd_cdev_kvm_device_del(vbasedev);
+    iommufd_cdev_kvm_device_del(vbasedev, iommufd);
 err_kvm_device_add:
     iommufd_backend_disconnect(iommufd);
     return false;
@@ -106,8 +126,10 @@ err_kvm_device_add:
 
 static void iommufd_cdev_unbind_and_disconnect(VFIODevice *vbasedev)
 {
+    IOMMUFDBackend *iommufd = vbasedev->iommufd;
+
     /* Unbind is automatically conducted when device fd is closed */
-    iommufd_cdev_kvm_device_del(vbasedev);
+    iommufd_cdev_kvm_device_del(vbasedev, iommufd);
     iommufd_backend_disconnect(vbasedev->iommufd);
 }
 

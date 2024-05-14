@@ -237,6 +237,7 @@ static inline int kvm_update_guest_debug(CPUState *cpu, unsigned long reinject_t
 
 int kvm_ioctl(KVMState *s, int type, ...);
 
+int kvm_vmfd(KVMState *s);
 int kvm_vm_ioctl(KVMState *s, int type, ...);
 
 int kvm_vcpu_ioctl(CPUState *cpu, int type, ...);
