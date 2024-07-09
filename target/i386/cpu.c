@@ -5427,7 +5427,7 @@ static const X86CPUDefinition builtin_x86_defs[] = {
             CPUID_XSAVE_XGETBV1 | CPUID_XSAVE_XSAVES,
         .features[FEAT_SVM] =
             CPUID_SVM_NPT | CPUID_SVM_NRIPSAVE | CPUID_SVM_VNMI |
-            CPUID_SVM_SVME_ADDR_CHK,
+            CPUID_SVM_SVME_ADDR_CHK | CPUID_SVM_BUSLOCK,
         .xlevel = 0x80000022,
         .model_id = "AMD EPYC-Turin Processor",
         .cache_info = &epyc_turin_cache_info,
