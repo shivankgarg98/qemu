@@ -1466,6 +1466,31 @@ int vfio_kvm_device_del_fd(int fd, Error **errp)
     return 0;
 }
 
+int vfio_tee_io_bind(VFIODevice *vbasedev, int32_t guest_rid)
+{
+    int rc = -ENOTSUP;
+#ifdef CONFIG_KVM
+    struct kvm_vfio_tsm_bind param = {
+        .guest_rid = guest_rid,
+        .devfd = vbasedev->fd,
+    };
+    struct kvm_device_attr attr = {
+        .group = KVM_DEV_VFIO_DEVICE,
+        .attr = KVM_DEV_VFIO_DEVICE_TDI_BIND,
+        .addr = (uint64_t)(unsigned long)&param,
+    };
+
+    rc = ioctl(vfio_kvm_device_fd, KVM_SET_DEVICE_ATTR, &attr);
+    if (rc < 0) {
+        error_report("vfio: failed to bind TEE IO dev %X fd=%d to CoCo VM: %s",
+                     param.guest_rid, param.devfd, strerror(errno));
+        return rc;
+    }
+#endif
+    trace_vfio_tee_io_bind(vbasedev->name, vbasedev->fd);
+    return 0;
+}
+
 VFIOAddressSpace *vfio_get_address_space(AddressSpace *as)
 {
     VFIOAddressSpace *space;

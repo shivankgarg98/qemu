@@ -310,4 +310,6 @@ void vfio_device_set_fd(VFIODevice *vbasedev, const char *str, Error **errp);
 void vfio_device_init(VFIODevice *vbasedev, int type, VFIODeviceOps *ops,
                       DeviceState *dev, bool ram_discard);
 int vfio_device_get_aw_bits(VFIODevice *vdev);
+int vfio_tee_io_bind(VFIODevice *vbasedev, int32_t guest_id);
+
 #endif /* HW_VFIO_VFIO_COMMON_H */

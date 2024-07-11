@@ -109,6 +109,8 @@ struct SevCommonState {
     uint32_t reset_cs;
     uint32_t reset_ip;
     bool reset_data_valid;
+
+    uint8_t continue_on_failed_tdi_bind;
 };
 
 struct SevCommonStateClass {
@@ -2023,6 +2025,55 @@ bool sev_add_kernel_loader_hashes(SevKernelLoaderContext *ctx, Error **errp)
     return klass->build_kernel_loader_hashes(sev_common, area, ctx, errp);
 }
 
+static int kvm_handle_vmgexit_tio_req(__u32 guest_rid)
+{
+    PCIDevice *pdev = NULL;
+    PCIETIOIfClass *tiok;
+    Object *tioko;
+    int ret;
+
+    ret = pci_qdev_find_device_by_pciid(0 /* Domain */, PCI_BUS_NUM(guest_rid),
+                                        PCI_BDF_TO_DEVFN(guest_rid), &pdev);
+    if (ret) {
+        printf("+++Q+++ (%u) %s %u: BDFn %x not found\n", getpid(), __func__, __LINE__, guest_rid);
+        return ret;
+    }
+
+    tioko = object_dynamic_cast(OBJECT(pdev), INTERFACE_PCIE_TIO_DEVICE);
+    if (!tioko) {
+        printf("+++Q+++ (%u) %s %u: TIO not supported\n", getpid(), __func__, __LINE__);
+        return -EPERM;
+    }
+    tiok = PCIE_TIO_DEVICE_GET_CLASS(tioko);
+
+    return tiok->tdi_bind(pdev, guest_rid);
+}
+
+int kvm_handle_vmgexit(struct kvm_run *run)
+{
+    int ret;
+
+    if (run->vmgexit.type == KVM_USER_VMGEXIT_TIO_REQ) {
+        SevCommonState *sev_common = SEV_COMMON(MACHINE(qdev_get_machine())->cgs);
+
+        ret = kvm_handle_vmgexit_tio_req(run->vmgexit.tio_req.guest_rid);
+        if (ret) {
+            if (sev_common->continue_on_failed_tdi_bind) {
+                ret = 0;
+            } else {
+                vm_stop(RUN_STATE_INTERNAL_ERROR);
+                warn_report("Stopping VM");
+                ret = 0;
+            }
+        }
+    } else {
+        warn_report("KVM: unknown vmgexit type: %d", run->vmgexit.type);
+        ret = -1;
+    }
+
+    return ret;
+}
+
 static char *
 sev_common_get_sev_device(Object *obj, Error **errp)
 {
@@ -2078,6 +2129,8 @@ sev_common_instance_init(Object *obj)
     object_property_add_uint32_ptr(obj, "reduced-phys-bits",
                                    &sev_common->reduced_phys_bits,
                                    OBJ_PROP_FLAG_READWRITE);
+    object_property_add_uint8_ptr(obj, "cont-bad-bind", &sev_common->continue_on_failed_tdi_bind,
+				 OBJ_PROP_FLAG_READWRITE);
 }
 
 /* sev guest info common to sev/sev-es/sev-snp */
