@@ -1541,7 +1541,10 @@ struct kvm_memory_attributes {
 struct kvm_create_guest_memfd {
 	__u64 size;
 	__u64 flags;
-	__u64 reserved[6];
+	__u64 host_nodes_addr;
+	__u16 maxnode;
+	__u8 mpol_mode;
+	__u8 reserved[37];
 };
 
 #endif /* __LINUX_KVM_H */

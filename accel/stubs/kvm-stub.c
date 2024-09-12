@@ -130,7 +130,9 @@ bool kvm_hwpoisoned_mem(void)
     return false;
 }
 
-int kvm_create_guest_memfd(uint64_t size, uint64_t flags, Error **errp)
+int kvm_create_guest_memfd(uint64_t size, uint64_t flags,
+                           HostMemPolicy mpol_mode, uint64_t *host_nodes,
+                           uint16_t maxnode, Error **errp)
 {
     return -ENOSYS;
 }

@@ -4307,13 +4307,23 @@ void kvm_mark_guest_state_protected(void)
     kvm_state->guest_state_protected = true;
 }
 
-int kvm_create_guest_memfd(uint64_t size, uint64_t flags, Error **errp)
+int kvm_create_guest_memfd(uint64_t size, uint64_t flags,
+                           HostMemPolicy mpol_mode, uint64_t *host_nodes,
+                           uint16_t maxnode, Error **errp)
 {
     int fd;
     struct kvm_create_guest_memfd guest_memfd = {
         .size = size,
         .flags = flags,
     };
+
+#ifdef CONFIG_NUMA
+    if ((flags & KVM_GUEST_MEMFD_NUMA_ENABLE) && host_nodes) {
+        guest_memfd.mpol_mode = mpol_mode;
+        guest_memfd.maxnode = maxnode + 1;
+        guest_memfd.host_nodes_addr = (uintptr_t)host_nodes;
+    }
+#endif
 
     if (!kvm_guest_memfd_supported) {
         error_setg(errp, "KVM does not support guest_memfd");

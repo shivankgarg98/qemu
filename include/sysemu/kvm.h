@@ -17,6 +17,7 @@
 #define QEMU_KVM_H
 
 #include "exec/memattrs.h"
+#include "qapi/qapi-types-common.h"
 #include "qemu/accel.h"
 #include "qom/object.h"
 
@@ -571,7 +572,12 @@ void kvm_mark_guest_state_protected(void);
  */
 bool kvm_hwpoisoned_mem(void);
 
-int kvm_create_guest_memfd(uint64_t size, uint64_t flags, Error **errp);
+/* flags */
+#define KVM_GUEST_MEMFD_NUMA_ENABLE     BIT_ULL(0)
+
+int kvm_create_guest_memfd(uint64_t size, uint64_t flags,
+                           HostMemPolicy mpol_mode, uint64_t *host_nodes,
+                           uint16_t maxnode, Error **errp);
 
 int kvm_set_memory_attributes_private(hwaddr start, uint64_t size);
 int kvm_set_memory_attributes_shared(hwaddr start, uint64_t size);
