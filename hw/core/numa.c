@@ -895,3 +895,43 @@ void ram_block_notify_resize(void *host, size_t old_size, size_t new_size)
         }
     }
 }
+
+unsigned long find_numa_maxnode(const unsigned long *nodes)
+{
+    unsigned long lastbit = find_last_bit(nodes, MAX_NODES);
+
+    /* lastbit == MAX_NODES means maxnode = 0 */
+    return (lastbit + 1) % (MAX_NODES + 1);
+}
+
+bool verify_policy_hostnodes(HostMemPolicy policy, size_t host_nodes_size,
+                             unsigned long maxnode, Error **errp)
+{
+    /*
+     * Check for invalid host-nodes and policies and give more verbose
+     * error messages than mbind().
+     * Note that HOST_MEM_POLICY_DEFAULT is equal to MPOL_DEFAULT and it is
+     * ensured using QEMU_BUILD_BUG_ON().
+     */
+    if (maxnode && policy == HOST_MEM_POLICY_DEFAULT) {
+        error_setg(errp, "host-nodes must be empty for policy default,"
+                   " or you should explicitly specify a policy other"
+                   " than default");
+        return false;
+    } else if (maxnode == 0 && policy != HOST_MEM_POLICY_DEFAULT) {
+        error_setg(errp, "host-nodes must be set for policy %s",
+                   HostMemPolicy_str(policy));
+        return false;
+    }
+
+    /*
+     * We can have up to MAX_NODES nodes, but we need to pass maxnode+1
+     * as argument to mbind() due to an old Linux bug (feature?) which
+     * cuts off the last specified node. This means backend->host_nodes
+     * must have MAX_NODES+1 bits available.
+     */
+    assert(host_nodes_size >=
+           BITS_TO_LONGS(MAX_NODES + 1) * sizeof(unsigned long));
+    assert(maxnode <= MAX_NODES);
+    return true;
+}

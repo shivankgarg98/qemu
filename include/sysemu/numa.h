@@ -110,5 +110,8 @@ extern QemuOptsList qemu_numa_opts;
 void numa_cpu_pre_plug(const struct CPUArchId *slot, DeviceState *dev,
                        Error **errp);
 bool numa_uses_legacy_mem(void);
+unsigned long find_numa_maxnode(const unsigned long *nodes);
+bool verify_policy_hostnodes(HostMemPolicy mode, size_t host_nodes_size,
+                             unsigned long maxnode, Error **errp);
 
 #endif
