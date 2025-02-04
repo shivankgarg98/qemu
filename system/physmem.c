@@ -82,6 +82,9 @@
 #include <daxctl/libdaxctl.h>
 #endif
 
+#include <numaif.h>
+#include <numa.h>
+
 //#define DEBUG_SUBPAGE
 
 /* ram_list is read under rcu_read_lock()/rcu_read_unlock().  Writes
@@ -1883,8 +1886,41 @@ static void ram_block_add(RAMBlock *new_block, Error **errp)
         assert(kvm_enabled());
         assert(new_block->guest_memfd < 0);
 
-        new_block->guest_memfd = kvm_create_guest_memfd(new_block->max_length,
-                                                        0, errp);
+        HostMemoryBackend *backend = MEMORY_BACKEND(new_block->mr->owner);
+        /* NUMA policy is provided for guest-memfd. */
+        if (IS_ENABLED(CONFIG_NUMA) && backend && backend->policy) {
+            unsigned long maxnode = find_numa_maxnode(backend->host_nodes);
+            if (verify_policy_hostnodes(backend->policy,
+                                        sizeof(backend->host_nodes), maxnode,
+                                        errp)) {
+                new_block->guest_memfd = kvm_create_guest_memfd(
+                                           new_block->max_length, 0, errp);
+                if (new_block->guest_memfd < 0) {
+                        qemu_mutex_unlock_ramlist();
+                        goto out_free;
+                }
+                new_block->ptr_memfd = mmap(NULL, new_block->max_length,
+                                            PROT_READ | PROT_WRITE,
+                                            MAP_SHARED,
+                                            new_block->guest_memfd, 0);
+                if (new_block->ptr_memfd == MAP_FAILED) {
+                    qemu_mutex_unlock_ramlist();
+                    goto out_free;
+                }
+                int ret = mbind(new_block->ptr_memfd,
+                                new_block->max_length, backend->policy,
+                                backend->host_nodes, maxnode+1, 0);
+                if (ret) {
+                      munmap(new_block->ptr_memfd, new_block->max_length);
+                      qemu_mutex_unlock_ramlist();
+                      goto out_free;
+                }
+            }
+        } else {
+            new_block->guest_memfd = kvm_create_guest_memfd(
+                                       new_block->max_length, 0,  errp);
+        }
+
         if (new_block->guest_memfd < 0) {
             qemu_mutex_unlock_ramlist();
             goto out_free;
@@ -2163,6 +2199,7 @@ void qemu_ram_free(RAMBlock *block)
     }
 
     qemu_mutex_lock_ramlist();
+    munmap(block->ptr_memfd, block->max_length);
     QLIST_REMOVE_RCU(block, next);
     ram_list.mru_block = NULL;
     /* Write list before version */
